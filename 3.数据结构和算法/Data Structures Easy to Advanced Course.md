@@ -216,7 +216,6 @@ A linked list is a sequential list of nodes that hold data which point to other 
 
 ### 栈的操作
 栈是一个允许执行以下操作的抽象数据结构（ADT）：
-
 `Push`：将元素添加到栈顶部
 `Pop`：从栈顶部删除元素
 `IsEmpty`：检查栈是否为空
@@ -224,6 +223,26 @@ A linked list is a sequential list of nodes that hold data which point to other 
 `Peek`：获取顶部元素的值而不删除它
 
 ![](assets/2.1-p2.png)
+
+**栈的应用**
+尽管栈是一个易于实现的简单数据结构，但它非常强大。 栈最常见的用途是：
+- 括号匹配
+- 模拟汉诺塔
+- **反转**单词: 将所有字母叠放并弹出。 由于栈的 LIFO 顺序，您将获得相反顺序的字母。
+- 在编译器中: 编译器使用栈通过将表达式转换为前缀或后缀形式来计算2 + 4 / 5 * (7 - 9)之类的表达式的值。
+- 在浏览器中: 浏览器中的“后退”按钮会将您以前访问过的所有 URL 保存在栈中。 每次您访问新页面时，它都会被添加到栈顶部。 当您按下“后退”按钮时，当前 URL 从栈中删除，并访问前一个 URL
+
+例：括号匹配
+```
+S = stack
+for bracket in bracket_string:
+    rev = getReversedBracket(bracket)
+    if isLeftBracket(bracket):
+        S.push(bracket)
+    elif S.isEmpty() or S.pop() != rev:
+        return False
+return S.isEmpty() 
+```
 ### 栈的实现
 使用指针TOP用于跟踪栈中的顶部元素。
 初始化栈时，将其值设置为`-1`，以便通过比较`TOP == -1`来检查栈是否为空。
@@ -320,24 +339,44 @@ if __name__ == '__main__':
 **栈的时间复杂度**
 对于基于数组的栈实现，推入和弹出操作需要固定时间，即`O(1)`，因为在两种情况下都只有指针移动。
 
-**栈的应用**
-尽管栈是一个易于实现的简单数据结构，但它非常强大。 栈最常见的用途是：
 
-- **反转**单词: 将所有字母叠放并弹出。 由于栈的 LIFO 顺序，您将获得相反顺序的字母。
-- 在编译器中: 编译器使用栈通过将表达式转换为前缀或后缀形式来计算2 + 4 / 5 * (7 - 9)之类的表达式的值。
-- 在浏览器中: 浏览器中的“后退”按钮会将您以前访问过的所有 URL 保存在栈中。 每次您访问新页面时，它都会被添加到栈顶部。 当您按下“后退”按钮时，当前 URL 从栈中删除，并访问前一个 URL
   
 
-## 2.2 Queue
+#  Queue
 ![](assets/2.2-p1.png)
 队列元素先进先出。我们将放入元素称为`enqueue`，取出元素称为`dequeue`。
 
 **队列的操作**：
-- Enqueue: 在队列末尾添加元素
-- Dequeue:在队列开头移除元素
+- Enqueue: 入队，在队列末尾添加元素
+- Dequeue: 出队，在队列开头移除元素
 - IsEmpty: Check if the queue is empty
 - IsFull: Check if the queue is full
 - Peek: 获取队列开头元素但不移除
+
+
+**队列应用**
+- CPU 调度，磁盘调度
+- 在两个进程之间异步传输数据时，使用队列进行同步。 例如：IO 缓冲区，管道，文件 IO 等
+- 实时系统中的中断处理。
+- 模拟真实世界队列，如呼叫中心电话系统使用队列来保持人们按顺序呼叫他们
+- 图的BFS搜索
+
+例，图的BFS搜索（广度优先）：
+```
+Q = Queue
+Q.enqueue(starting_node)
+starting_node.visited = True
+
+while Q is not empty:
+    node = Q.dequeue()
+    for neighbour in neighbours(node):
+        if neighbour has not been visited:
+            neighbour.visited = True
+            Q.enqueu(neighbour)
+```
+
+
+
 
 **队列的实现**
 （这个实现是基于不可变数组的，在Python中实现比较简单，不需要指针概念）
@@ -464,11 +503,151 @@ print(q)
 **复杂度**
 使用数组的队列中入队和出队操作的复杂度为O(1)。
 
-**队列应用**
-- CPU 调度，磁盘调度
-- 在两个进程之间异步传输数据时，使用队列进行同步。 例如：IO 缓冲区，管道，文件 IO 等
-- 实时系统中的中断处理。
-- 呼叫中心电话系统使用队列来保持人们按顺序呼叫他们
+# PQ(Priority Queue) with an interlude on heaps
+优先队列和普通队列操作类似，只是每个元素都有一个优先级，优先级高的元素先出队。
+那么如何保证每次出队时都能选中优先级高的元素？每次出队时进行一次排序？
+不，那样太低效率了。优先级队列通过堆(heap)实现。
+堆是一种树型结构，可以分为小根堆和大根堆。小根堆具有一种属性：父节点<=子节点。 类似地，可以定义大根堆。
+
+## PQ应用
+- Dijkstra最短路径
+- 任何你需要动态获得最好/最差 元素的情形
+- Huffman 编码
+- BFS(Best First Search)
+
+## Turning Min-PQ into Max-PQ
+由于大多数编程语言的标准库只提供min-PQ， 但是有时候我们需要max-PQ。
+
+negate：对元素取负号 或者对比较器取反。
+## 实现PQ
+虽然PQ作为一种抽象数据结构，可以使用任何东西实现（比如列表）。但通常使用堆可以获得最佳的时间复杂度。
+堆有很多，为了简单我们用二叉堆。
+关于堆的前置知识：
+二叉堆是满足堆性质的二叉树。
+**complete binary tree 完全二叉树**：除最后一层节点外，其他层节点都是满的，并且最后一层节点都要左排列。
+![](assets/完全二叉树.png)
+
+实现完全二叉树可以使用数组，并且有一个简单的访问子节点方法：如果父节点索引为i，那么子节点索引为2i+1, 2i+2。
+
+二叉堆的插入，在堆的末尾插入，需要向上冒泡保持堆性质。
+二叉堆的删除根，需要将根和末尾元素交换，然后从根向下冒泡。
+二叉堆的删除普通节点，需要搜索出节点位置，然后和末尾元素交换，然后向上（或向下）冒泡以满足堆性质。
+
+改进删除操作的时间复杂度到 O(log(n))？
+使用哈希表(Hashtable)，将值和索引关联。
+这样会额外引入两个问题，
+1. 加入存在多个相同值的元素（例如有3个2），需要用set等存储索引。
+2. 元素冒泡、删除、添加等操作时，索引也要相应的改变。
+
+
+
+# Union Find(Disjoint Set)
+Union Find是一种数据结构，追踪多个不相交集合中的元素
+主要有两个操作 find 和 union。
+
+**应用**
+- Kruskal 最小生成树
+- 网格渗透 Grid percolation
+- 网络连接性
+- 树中最不常见祖先
+- 图像处理
+
+## Kruskal 最小生成树
+问题描述：
+给定图G=(V,E)， 想要获得图的最小生成树。图的最小生成树是图的边的子集，连接所有顶点且边代价最小。
+可以想象成一个修路问题，想要这些村庄（顶点）相互连接，并且修路成本（边的成本）最低。
+![](assets/最小生成树1.png)
+![](assets/最小生成树2.png)
+
+Kruskal算法最小生成树算法步骤：
+1. 将边按边的权重降序
+2. 遍历排序后的边，如果边的两个顶点在同一个组中，则忽略这条边（因为这会导致环），否则我们包含这条边，并且合并两个顶点。
+3. 重复2，直到每条边都处理过或者每个顶点都在一个组中。
+
+## Union Find Operations
+step1:将元素映射到数组索引，如E->0 A->1 ...
+(方便后面使用数组存储union信息)
+step2:Union 合并
+![](assets/2合并.png)
+
+总结：
+find: 想要找到一个元素属于哪个组，需要一直找它的父节点，知道到达根节点（根节点的parent指向自身）
+union: 想要合并两个元素，我们需要找到两个元素所属的根节点，然后将一个根节点作为另一个根节点的parent。
+
+## Path Compression 路径压缩
+![](assets/路径压缩1.png)
+
+源码：见最上方的仓库地址。
+
+# Binary Trees anb Binary Search Trees(BST)
+
+**树**
+![](assets/树.png)
+树是一种非线性层次结构。由相互连接的节点组成。
+
+二叉树(Binary Tree)是每个节点最多有两个孩子的树。
+二叉搜索树(Binary Search Tree)是满足 左子树<节点<右子树 的二叉树。（是否可以取等号取决于具体应用）
+
+**BST的用处**
+- 实现map 或 set
+- 红黑树
+- AVL
+- 二叉堆
+- 语法树
+  
+
+
+## 树的术语
+**节点Node**
+节点包含键或值以及指向其子节点的指针。每个路径的最后一个节点（没有子节点）称为叶节点(leaf node)。
+
+**边 Edge**
+它是任意两个节点之间的链接。
+![](assets/节点和边.png)
+
+**根Root**
+树的最顶层节点
+**节点高度**
+节点的高度是从节点到最深叶（即从节点到叶节点的最长路径）的边数。
+**节点深度**
+节点的深度是从根到节点的边数。
+**树的高度**
+树的高度是根节点的高度或最深节点的深度。
+**节点的度数(Degree)**
+节点的度数是该节点的分支总数。
+**森林**
+不相交的树的集合称为森林。
+
+BST的插入、删除、移除、搜索的平均时间复杂度是对O(log(N))，但最坏情况的复杂度是O(N)。
+
+**插入 Insert  into a BST**
+插入元素时，我们考虑下面四种情况
+
+`< case`:  recurse down left subtree
+`> case`:  recurse down right subtree
+`=case`: handle  duplicate value
+`find a null leaf`: create a new node
+
+在最坏情况下(1,2,3,4,5)，插入的时间复杂度是O(N)
+
+**删除 remove**
+删除元素 可以分为两部：1.查找 2.用后续节点替换
+2 steps:
+1. find
+2. replace it with its successor to maintain BST invariant.
+
+**查找**
+查找的方式如下：
+1. 如果到达null node， 说明元素不存在
+2. 节点 ==元素 ： 找到！
+3.   元素 < 节点：继续查找左子树
+4.   元素 > 节点：继续查找右子树
+
+**移除 remove**
+ 
+————————
+————————
+————————
 
 ## 2.3 Types of Queue
 有4种不同的队列：
@@ -476,6 +655,8 @@ print(q)
 - Circular Queue
 - Priority Queue
 - Double Ended Queue
+- Minimum Spanning Tree(MST),最小生成树
+
 
 
 **简单队列**， 遵循先进先出规则。

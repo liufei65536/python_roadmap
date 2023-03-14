@@ -37,7 +37,7 @@ def draw_text(img_path,text,pos):
     # 在PIL格式的图像上绘制中文文字
     font_path = "SourceHanSerifSC-VF.ttf"# 设置字体路径 ttf文件或otf文件
     #font_path = "AdobeSongStd-Light.otf"  
-    font = ImageFont.truetype(font_path, size=100)  # 设置字体和大小
+    font = ImageFont.truetype(font_path, size=300)  # 设置字体和大小
     draw = ImageDraw.Draw(img)  # 创建画笔
     color = (0, 255, 0)  # 文字颜色
     draw.text(pos, text, color, font=font)  # 绘制文字
@@ -46,16 +46,20 @@ def draw_text(img_path,text,pos):
 if __name__ == '__main__':
     img_path = 'pics/pic.jpg'
     
+
+
     # 读取和显示
     read_show_pic(img_path)
 
     # 缩略图
     thumbnail_pic = get_thumbnail(img_path)
     thumbnail_pic.show()
+    thumbnail_pic.save("缩略图.jpg")
 
     # 绘制文字
-    text_img = draw_text(img_path,"你好！",(0,0))
+    text_img = draw_text(img_path,"Hello,world",(0,0))
     text_img.show()
+    text_img.save("加水印.jpg")
 
     # 图像增强
     #enhance(img_path)
