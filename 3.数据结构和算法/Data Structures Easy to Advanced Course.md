@@ -618,6 +618,7 @@ union: 想要合并两个元素，我们需要找到两个元素所属的根节�
 **森林**
 不相交的树的集合称为森林。
 
+## BST则增删、查找
 BST的插入、删除、移除、搜索的平均时间复杂度是对O(log(N))，但最坏情况的复杂度是O(N)。
 
 **插入 Insert  into a BST**
@@ -643,9 +644,248 @@ BST的插入、删除、移除、搜索的平均时间复杂度是对O(log(N))�
 3.   元素 < 节点：继续查找左子树
 4.   元素 > 节点：继续查找右子树
 
-**移除 remove**
- 
-————————
+
+叶子节点：可以直接移除
+只有单个子树（只有左/右子树）：用后继节点替代。
+有左右子树：用后继节点替代。 后继节点可以是左子树的最大或右子树的最小，它们都能满足BST性质。
+
+## 树的遍历(Traversal)
+![](assets/left-right.png)
+根据访问根的顺序，可以分成
+中序(inorder)遍历（左根右）、
+前序(preorder)遍历（根左右）、
+后序(postorder)遍历（左右根）
+
+中序遍历(inorder)
+```py
+inorder(node):
+    if node == None:return
+    inorder(node.left)
+    print(node.value)  
+    inorder(node.right)
+```
+前序遍历 preorder
+```py
+preorder(node):
+    if node == None:return
+    print(node.value)
+    preorder(node.left)
+    preorder(node.right)
+```
+后序遍历 psotorder
+```py
+postorder(node):
+    if node == None:return
+    postorder(node.left)
+    postorder(node.right)
+    print(node.value) 
+```
+
+还有一种层序遍历(level order)，逐层访问,广度优先。
+可以用队列实现。
+
+# HashTable
+哈希表以键-值(Key-value)的形式存储数据
+Key是索引，Value则是数据。
+哈希表通过hashing 建立从key到value的映射。
+实际上，哈希表是一种数组(index-value)。
+![](assets/k-v.png)
+
+## 直接寻址表
+如果key很少的话，可以用直接寻址。可以用一个数组，或称为直接寻址表，记作T[0..m-1]。其中每个位置，或称为槽，对应key域的一个key。
+![](assets/直接寻址表.png)
+容易实现字典操作：
+```
+DIRECT-ADDRESS-SEARCHCT,k) 
+return T[k]
+DIRECT-ADDRESS-INSERT(T,x) 
+T[x.,key]=x 
+DIRECT-ADDRESS-DELETE(T,x) 
+T[x. key]=NIL 
+```
+
+## 哈希 hashing
+key通常并不直接作为数组索引，需要进行一个映射。
+哈希是将key映射成索引的过程:
+`index = h(key)`  
+![](assets/hash_func.png)
+因此，知道了key，就可以直接获得索引，而无需遍历查找。
+通过key获得value的效率是`O(1)`。（一般情况下）
+此外，key可以是任意类型，不一定是整数，也可以是字符串，自定义的类，只要实现相应的hash函数就行。
+
+**哈希函数的性质**
+如果H(x) == H(y) ，那么x可能和y相等。（哈希冲突）
+如果H(x) ！= H(y) ，那么x一定和y不同。
+
+对于同一个x, H(x) 是确定的。（因此，很多语言要求key是不可变的）
+
+可以利用hash函数加速对象比较。
+如果我们计算了file1和file2的哈希值，那么就可以直接比较这两个值，而不需要打开文件并比较内容。（设计合适的hash函数几乎可以避免哈希冲突。
+
+## 哈希冲突
+对于不同的key,哈希函数映射到同一个索引，则发生冲突。
+即x,y是两个不同对象，但H(x)==H(y)
+![](assets/哈希冲突.png)
+(尽管可以通过下面的方法解决哈希冲突的存储问题，但是为了保持哈希表的时间复杂度，应该避免哈希冲突。
+最根本的是维持哈希表的大小超过元素数量。当哈希表满的时候，我们要创建一个更大的哈希表。)
+## (分离)链接法 separate chaining
+我们可以通过链表解决哈希冲突。此时槽中存储的是一个链表。 
+
+
+解决冲突后，容易实现字典操作：
+```
+chainedHashSearch(T, k)
+  search for an element with k in list T[h(k)]
+chainedHashInsert(T, x)
+  insert x at the head of T[h(x.key)] 
+chainedHashDelete(T, x)
+  delete x from the list T[h(x.key)]
+```
+
+## 开放寻址 Open Addressing
+开放寻址法将所有元素存放在散列表中。要查找元素时，需要系统检查所有的表项。
+开放寻址法的好处就在于它不用指针，而是计算出要存取的槽序列。于是，不用存储指针而节省的空间，使得可以用同样的空间来提供更多的槽，潜在地减少了冲突，提高了检索速度。
+
+
+
+**I. 线性检测(Linear probing)**
+在线性探测中，通过检查下一个插槽来解决冲突。 
+`h(k, i) = (h′(k) + i) mod m `
+其中，
+`i = {0, 1, …,m-1}`
+`h'(k)`是新的哈希函数
+如果在`h(k, 0)`发生碰撞，则检查`h(k, 1)`。 这样，i的值线性增加。 线性探测的问题是相邻槽的簇被填充。 插入新元素时，必须遍历整个集群。 这增加了对哈希表执行操作所需的时间。
+```py
+HASH-INSERT(T,k) 
+1   i=O 
+2   repeat 
+3     j=h(k,i) 
+4     if T[j]==NIL 
+5       T[j]=k 
+6       return j 
+7     else i=i+l 
+8   until i==m 
+9   error "hash table overflow" 
+```
+查找关键字k的算法的探查序列与将K插入时的算法一样。因此，查找过程中碰到一个空槽时，查找算法就（非成功地）停止，因为如果k在表中，它就应该在此处，而不会在探查序列随后的位置上（之所以这样说，是假定了关键字不会从散列表中删除）。过程HASH-SEARCH的输入为一个散列表T和一个关键字k,如果槽j中包含了关键字k,则返回j;如果k不在表T中，则返回NIL。
+```
+HASH-SEARCH(T,k) 
+1 i=O 
+2 repeat 
+3   j=h(k,j) 
+4   if T[j]==k 
+5     return j 
+6   i=i+1 
+7 until T[j]==NIL or i==m 
+8 return NIL 
+```
+
+开放寻址法的散列表中删除操作元素比较困难。当我们从槽i中删除关键字时，不能仅将NIL置于其中来标识它为空。如果这样做，就会有问题：在插入关键字K时，发现槽i被占用了，则K就被插入到后面的位置上；此时将槽i中的关键字删除后，就无法检索到关键字K了。
+有一个解决办法，就是在槽i中置一个特定的值DELETED替代NIL来标记该槽。这样就要对过程HASH-INSERT做相应的修改，将这样的一个槽当做空槽，使得在此仍然可以插入新的关键字。对HASH-SEARCH无需做什么改动，因为它在搜索时会绕过DELETED标识。但是，当我们使用特殊的值DELETED时，查找时间就不再依赖于装载因子a了。为此，在必须删除关键字的应用中，更常见的做法是采用链接法来解决冲突。。
+
+(探测函数的一个问题是 循环，如果GCD(a,N) != 1，那么多次哈希冲突后，探测函数能找到的位置就会陷入循环。线性函数选择a=1, p(x)=x ，可以对任意N成立GCD(a,N)=1，避免循环)
+**II. 二次探测 Quadrabic**
+在二次探测中，通过使用以下关系，可以增大槽之间的间距（大于 1）。 
+$h(k, i) = (h′(k) + c_1 i + c_2 i^2) mod m$
+其中，
+c_1和c_2是正的常数，
+i = {0, 1, …m-1}
+
+同样，二次探测也要考虑避免循环。
+一种方法是，让P(x) = (x^2 + 2)/2， table size N = 2的幂。
+**III.双重哈希(double hashing)** 
+`h(k, i) = (h_1(k) + i h_2(k)) mod m`
+其中h_1和h_2都是辅助散列函数 。 初始探查位置为 T[h_1 (k)], 后续的探查位置是前一个位置加上偏移量h_2(k)后模m。因此，不像线性探查或二次探查，这里的探查序列以两种不同方式依赖于关键字k,因为初始探查位置、偏移量或者二者都可能发生变化。
+
+
+
+## 常见的hash函数
+良好的哈希函数具有以下特征。
+
+它不应生成太大且存储桶空间小的键。 空间被浪费了。
+生成的键的范围不能太近，也不能太远。
+必须尽可能减少碰撞。
+用于散列的一些方法是：
+
+**取余**
+如果k是键，并且m是哈希表的大小，则哈希函数h()的计算公式为：
+h(k) = k mod m
+
+**乘法**
+h(k) = ⌊m(kA mod 1)⌋ 其中，
+
+kA mod 1给出小数部分kA，
+⌊ ⌋给出底值
+A是任何常数。A的值在 0 到 1 之间。但是，最佳选择是 Knuth 建议的≈ (√5-1)/2。
+**通用哈希**
+在通用哈希中，哈希函数是独立于键随机选择的。
+
+
+## **哈希表应用**
+
+- 需要常数时间的查找和插入
+- 密码学应用
+- 需要索引数据
+
+
+
+# Fenwick Tree(Binary Indexed Tree)
+motivation： 前缀和存在的问题，如果某个元素改变了，后续前缀和都需要重新计算。
+
+Fenwick Tree：是一种支持范围查询和更新的数据结构。
+
+**range queries**
+索引从1开始， 使用二进制表示，最低有效位(least significant bit, LSB)决定负责的范围。 例如1 为 00001 ,负责的范围是2^0=1（负责自身）。 2是00010，负责的范围是2^1=2（即负责2和1位置）。 4是00100，负责的范围是2^2=4
+
+代码
+```
+function prefixSum(i):
+    sum := 0
+    while i!= 0 :
+        sum  = sum + tree[i]
+        i = i - LSB(i)
+    return sum
+
+function rangeQuery(i, j):
+    return prefixSum(j) - prefixSum(i-1)
+
+LSB return the value of the least significant bit. e.g. LSB(12) = 4 because 12 = 1100_2, the least significant bit is 100_2 , is 4 in base ten.
+```
+
+这个过程就像是不断删除最低位的1。
+
+**Fenwick Tree Point Updatas**
+节点i 变为i+x。
+```
+function add(i, x):
+    while i < N:
+        tree[i] = tree[i] + x
+        i = i + LSB(i)  
+```
+
+更新过程就像是不断增加最低位的1。
+
+**Fenwick Tree Point Construction**
+从数组构建Fenwick Tree.
+```
+function construct(values):
+    N := length(values)
+    tree = deepCopy(values)
+
+    for i = 1,2,3,...N:
+        j := i + LSB(i)
+        if j < N:
+            tree[j] = tree[j] + tree[i]
+        
+    return tree
+
+```
+
+# Suffix Arrays
+6:14:50 
+
+
+———————— 
 ————————
 ————————
 
